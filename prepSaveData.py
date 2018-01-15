@@ -5,6 +5,7 @@ import os
 import cv2
 import sys, random, time
 from sklearn.externals import joblib
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 from keras.utils import to_categorical
 
 CLASSES = 8
@@ -12,10 +13,10 @@ with open('data/pickles/labels_train.pkl', 'rb') as f:
     traindata = pickle.load(f)
 X, y = [], []
 count = 0
+item_count = 0
 for k, v in traindata.items(): 
-
-    print(k , v)
-    exit(1)      
+    if(item_count % 10 == 0):
+        print(item_count)
     img = imread('data/images/' + k, mode ='RGB')
     img = img / 255
     X.append(imresize(img ,size=(224,224)))
@@ -30,6 +31,7 @@ for k, v in traindata.items():
             joblib.dump(y, f)
         X, y = [], []
         count += 1
+    item_count += 1
 count += 1  
 print(len(X))     
 with open('data/npy/X_' + str(count) +'.npy', 'wb') as f:

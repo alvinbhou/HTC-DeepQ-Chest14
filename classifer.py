@@ -1,24 +1,32 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+
 from scipy.misc import imread, imsave, imresize
 from keras.utils import to_categorical
 from keras.layers import Conv2D, BatchNormalization, Input, Activation
 from keras.layers import LeakyReLU, Lambda, Reshape, Concatenate, Add, Dense, Flatten
-from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, LearningRateScheduler
+from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, LearningRateScheduler, Callback
 from keras.preprocessing.image import ImageDataGenerator, img_to_array
 from keras.optimizers import SGD, Adam
 from keras import regularizers
 import keras.backend as K
-from keras.models import Model
+from keras.models import Model,load_model
 import pickle
 import numpy as np
-import os
 import cv2
 from collections import Counter
 import sys, random, time
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
 from keras.applications.resnet50 import ResNet50, preprocess_input
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 
 model_id = sys.argv[1]
+# run = sys.argv[2]
+# first = True
+# if (run == '-s'):
+#     first = False  
+
+
 if not (os.path.exists("models/%s/" % model_id)):
     os.makedirs("models/%s/" % model_id)
 MODELDIR = os.path.join("models", model_id)
@@ -30,10 +38,22 @@ sv = ModelCheckpoint(os.path.join(MODELDIR, MODELFILE),
                             monitor='val_acc',
                             verbose=1,
                             save_best_only=True,
-                            save_weights_only=True,
+                            save_weights_only=False,
                             mode='auto',
                             period=1)
 es = EarlyStopping(patience=7)
+
+class LogCallback(Callback):
+    def __init__(self):
+        super(Callback, self).__init__()
+        
+
+    def on_epoch_end(self, epoch, logs={}):
+        with open(os.path.join(MODELDIR, 'log.txt'), 'a') as file:
+            file.write(str(epoch) + ',' + str(logs['loss']) +',' + str(logs['acc']) + ',')
+            file.write(str(logs['val_loss']) + ',' + str(logs['val_acc']) + '\n')
+            print(epoch, logs)
+
 
 
 def EqualizeHistogram(img, in_path=None):
@@ -50,12 +70,19 @@ def CLAHE(img, in_path = None, tileGridsize=(8,8)):
     cl1 = clahe1.apply(img)
     return cl1
 
-def create_base_model():
-    model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+def create_base_model(w = None):
+    model = ResNet50(weights=w, include_top=False, input_shape=(224, 224, 3))
     for layer in model.layers:
         layer.trainable = False
     return model
 
+
+def freeze_base_model(model):
+    # for layer in model.layers[:self.num_fixed_layers]:
+    #     layer.trainable = False
+    for layer in model.layers:
+        layer.trainable = False
+    return model
 def rebase_base_model(model):
     # for layer in model.layers[:self.num_fixed_layers]:
     #     layer.trainable = False
@@ -147,8 +174,11 @@ def x_gen(batch_size, valid = False):
 
 def train():
     # model = create_model_ResNetV2()
-    base_model = create_base_model()
+    base_model = create_base_model(w = 'imagenet')
+    # base_model = freeze_base_model(base_model)
     model = add_custom_layers(base_model)
+    if(os.path.exists("models/%s/model.h5" % model_id)):
+        model.load_weights(os.path.join(MODELDIR, 'model.h5'))
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     train_image_gen, test_image_gen = create_data_generator()
 
@@ -158,35 +188,39 @@ def train():
     model.fit_generator(
             train_gen,
             epochs=30,
-            steps_per_epoch= 320,
+            steps_per_epoch= 160,
             validation_data=validation_gen,
             validation_steps= 440//64 + 1,
             class_weight=weights,
-            callbacks=[es, sv]
+            callbacks=[ LogCallback(), sv]
         )
-
     # second run
+    model.load_weights(os.path.join(MODELDIR, 'model.h5'))
     model = rebase_base_model(model)
+    train_gen = train_image_gen.flow_from_directory('./data/train', target_size=(224, 224), batch_size=32)
+    weights = create_class_weights(train_gen.classes, 0.15)
+    validation_gen = test_image_gen.flow_from_directory('./data/validation', target_size=(224, 224), batch_size=64)
     adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+    
     model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
     MODELFILE = 'model2.h5'
-    sv2 = ModelCheckpoint(os.path.join(MODELDIR, MODELFILE),
+    sv2 = ModelCheckpoint(os.path.join(MO資料全部存起來DELDIR, MODELFILE),
                             monitor='val_acc',
                             verbose=1,
                             save_best_only=True,
-                            save_weights_only=True,
+                            save_weights_only=False,
                             mode='auto',
                             period=1)
     model.fit_generator(
             train_gen,
-            epochs=30,
-            steps_per_epoch= 320,
+            epochs=5,
+            steps_per_epoch= 160,
             validation_data=validation_gen,
             validation_steps= 440//64 + 1,
             class_weight=weights,
-            callbacks=[es, sv2]
+            callbacks=[ sv2]
         )
-    
+
     
 train()
      
