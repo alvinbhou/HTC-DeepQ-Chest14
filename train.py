@@ -3,12 +3,12 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 from keras.utils import to_categorical
 from keras.layers import Conv2D, BatchNormalization, Input, Activation
-from keras.layers import LeakyReLU, Lambda, Reshape, Concatenate, Add, Dense, Flatten
+from keras.layers import LeakyReLU, Lambda, Reshape, Concatenate, Add, Dense, Flatten, Dropout
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, LearningRateScheduler, Callback
 from keras.optimizers import SGD, Adam
 from keras import regularizers
 import keras.backend as K
-from keras.models import Model
+from keras.models import Model, load_model
 import pickle
 import numpy as np
 from sklearn.externals import joblib
@@ -42,7 +42,7 @@ sv = ModelCheckpoint(os.path.join(MODELDIR, MODELFILE),
                             save_weights_only=False,
                             mode='auto',
                             period=1)
-es = EarlyStopping(patience=15)
+es = EarlyStopping(patience=20)
 
 
 def EqualizeHistogram(img, in_path=None):
@@ -76,8 +76,10 @@ def rebase_base_model(model):
 def add_custom_layers(base_model):
         x = base_model.output
         x = Flatten()(x)
+        # x = Dropout(0.2)(x)
+        # x = Dense(1024, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
         x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
-        x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
+        # x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
         y = Dense(CLASSES, activation='softmax')(x)
         model = Model(inputs=base_model.input, outputs=y)
         return model
@@ -153,17 +155,20 @@ def x_gen(batch_size, valid = False):
                 X, y = [], []
 
 def train():
-    model = create_base_model(w = None, trainable = True)
-    model = add_custom_layers(model)
-    adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    if(os.path.exists(os.path.join(MODELDIR, MODELFILE))):
+        model = load_model(os.path.join(MODELDIR, MODELFILE))
+    else:
+        model = create_base_model(w = None, trainable = True)
+        model = add_custom_layers(model)
+        adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     # base_model = create_base_model()
     # model = add_custom_layers(base_model)
     # model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
     # train_history = model.fit_generator( x_gen(32, valid = False), validation_data = x_gen(32, valid = True),steps_per_epoch= 200, validation_steps = 14, epochs= 50, callbacks=[es,sv])
 
-    train_history = model.fit_generator( generator(64), validation_data = generator(64, valid = True),  steps_per_epoch= 100, validation_steps = 84, epochs= 100, callbacks=[es,sv, LogCallback()])
+    train_history = model.fit_generator( generator(32), validation_data = generator(32, valid = True),  steps_per_epoch= 100, validation_steps = 84, epochs= 500, callbacks=[sv, LogCallback()])
 # DATA_ROOT_PATH = 'data/npy'  
 # with open(os.path.join(DATA_ROOT_PATH, 'X_11' + '.npy'), 'rb') as file:
 #     X = joblib.load(file)

@@ -33,7 +33,9 @@ for k, v in traindata.items():
         count += 1
     item_count += 1
 count += 1  
-print(len(X))     
+print(len(X))   
+X = np.array(X)
+y = to_categorical(y, num_classes=CLASSES)
 with open('data/npy/X_' + str(count) +'.npy', 'wb') as f:
     joblib.dump(X, f)
 with open('data/npy/y_' + str(count) +'.npy', 'wb') as f:
