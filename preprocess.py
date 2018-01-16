@@ -66,14 +66,14 @@ with open('data/Data_Entry_2017_v2.csv') as f:
         elif id in testset:
             testdata[id] = obs
  
-print(len(traindata.keys()))
+# print(len(traindata.keys()))
 print(len(validdata.keys()))
-print(len(testdata.keys()))
-with open('data/pickles/labels_train.pkl', 'wb') as f:
-    pickle.dump(traindata, f)
+# print(len(testdata.keys()))
+# with open('data/pickles/labels_train.pkl', 'wb') as f:
+#     pickle.dump(traindata, f)
  
 with open('data/pickles/labels_valid.pkl', 'wb') as f:
     pickle.dump(validdata, f)
  
-with open('data/pickles/labels_test.pkl', 'wb') as f:
-    pickle.dump(testdata, f)
+# with open('data/pickles/labels_test.pkl', 'wb') as f:
+#     pickle.dump(testdata, f)

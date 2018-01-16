@@ -7,8 +7,30 @@ import sys, random, time
 from sklearn.externals import joblib
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 from keras.utils import to_categorical
-
 CLASSES = 8
+# valid
+with open('data/pickles/labels_valid.pkl', 'rb') as f:
+    validdata = pickle.load(f)
+X, y = [], []
+for k, v in validdata.items(): 
+    img = imread('data/images/' + k, mode ='RGB')
+    img = img / 255
+    X.append(imresize(img ,size=(224,224)))
+    y.append(v)
+          
+y = to_categorical(y, num_classes=CLASSES)
+X = np.array(X)
+print(X.shape, y.shape)
+with open('data/npy/X_valid.npy', 'wb') as f:
+    joblib.dump(X, f)
+with open('data/npy/y_valid.npy', 'wb') as f:
+    joblib.dump(y, f)
+exit(1)
+
+
+# train
+
+
 with open('data/pickles/labels_train.pkl', 'rb') as f:
     traindata = pickle.load(f)
 X, y = [], []

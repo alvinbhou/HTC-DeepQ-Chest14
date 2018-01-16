@@ -79,7 +79,7 @@ def add_custom_layers(base_model):
         # x = Dropout(0.2)(x)
         # x = Dense(1024, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
         x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
-        # x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
+        x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
         y = Dense(CLASSES, activation='softmax')(x)
         model = Model(inputs=base_model.input, outputs=y)
         return model
@@ -111,12 +111,18 @@ def generator(batch_size, valid = False):
     DATA_ROOT_PATH = 'data/npy'
     while True:
         if(valid):
-            with open(os.path.join(DATA_ROOT_PATH, 'X_11' + '.npy'), 'rb') as file:
-                X = joblib.load(file)
-            with open(os.path.join(DATA_ROOT_PATH, 'y_11' + '.npy'), 'rb') as file:
-                y = joblib.load(file) 
-            X = np.array(X)
-            y = to_categorical(y, num_classes=CLASSES)
+            with open('data/npy/X_valid.npy', 'rb') as f:
+                X = joblib.load(f)
+            with open('data/npy/y_valid.npy', 'rb') as f:
+                y = joblib.load(f)
+
+
+            # with open(os.path.join(DATA_ROOT_PATH, 'X_11' + '.npy'), 'rb') as file:
+            #     X = joblib.load(file)
+            # with open(os.path.join(DATA_ROOT_PATH, 'y_11' + '.npy'), 'rb') as file:
+            #     y = joblib.load(file) 
+            # X = np.array(X)
+            # y = to_categorical(y, num_classes=CLASSES)
             for j in range((len(X) // batch_size) - 1):
                     yield X[j * batch_size: (j+1) * batch_size], y[ j * batch_size: (j+1) * batch_size]
 
@@ -158,7 +164,7 @@ def train():
     if(os.path.exists(os.path.join(MODELDIR, MODELFILE))):
         model = load_model(os.path.join(MODELDIR, MODELFILE))
     else:
-        model = create_base_model(w = None, trainable = True)
+        model = create_base_model(w = 'imagenet', trainable = False)
         model = add_custom_layers(model)
         adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -168,7 +174,7 @@ def train():
 
     # train_history = model.fit_generator( x_gen(32, valid = False), validation_data = x_gen(32, valid = True),steps_per_epoch= 200, validation_steps = 14, epochs= 50, callbacks=[es,sv])
 
-    train_history = model.fit_generator( generator(32), validation_data = generator(32, valid = True),  steps_per_epoch= 100, validation_steps = 84, epochs= 500, callbacks=[sv, LogCallback()])
+    train_history = model.fit_generator( generator(64), validation_data = generator(64, valid = True),  steps_per_epoch= 100, validation_steps = 84, epochs= 500, callbacks=[sv, LogCallback()])
 # DATA_ROOT_PATH = 'data/npy'  
 # with open(os.path.join(DATA_ROOT_PATH, 'X_11' + '.npy'), 'rb') as file:
 #     X = joblib.load(file)
@@ -176,5 +182,8 @@ def train():
 #     y = joblib.load(file) 
 # print(np.array(X).shape, np.array(y).shape)  
 # exit()
+
+
 train()
+
      

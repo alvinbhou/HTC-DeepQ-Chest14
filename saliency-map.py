@@ -68,8 +68,8 @@ for (dirpath, dirnames, filenames) in os.walk('data/train/' + CLASS_NAME):
                 if np.mean(heatmap[i][j]) / 255 < threshold:
                     see[i][j] = mp
 
-        if not os.path.exists("saliency_map/" + CLASS_NAME):
-            os.makedirs("saliency_map/" +CLASS_NAME)
+        if not os.path.exists("saliency_map/" + CLASS_NAME +"/tmp"):
+            os.makedirs("saliency_map/" +CLASS_NAME +"/tmp")
 
         plt.figure()
         plt.imshow(heatmap, cmap=plt.cm.jet)
@@ -77,7 +77,8 @@ for (dirpath, dirnames, filenames) in os.walk('data/train/' + CLASS_NAME):
         plt.tight_layout()
         fig = plt.gcf()
         plt.draw()
-        fig.savefig( os.path.join("saliency_map/" ,CLASS_NAME , IMG_ID +".png"), dpi=100)
+        fig.savefig( os.path.join("saliency_map/" ,CLASS_NAME , "tmp", IMG_ID +".png"), dpi=100)
+        fig.clear()
         plt.close(fig)
         
         plt.figure()
@@ -86,7 +87,8 @@ for (dirpath, dirnames, filenames) in os.walk('data/train/' + CLASS_NAME):
         plt.tight_layout()
         fig = plt.gcf()
         plt.draw()
-        fig.savefig(os.path.join("saliency_map/" ,CLASS_NAME , IMG_ID +"_mask.png"), dpi=100)
+        fig.savefig(os.path.join("saliency_map/" ,CLASS_NAME ,"tmp", IMG_ID +"_mask.png"), dpi=100)
+        fig.clear()
         plt.close(fig)
         plt.close('all')
         
