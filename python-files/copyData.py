@@ -3,7 +3,7 @@ LABELS = [
     'Atelectasis',
     'Cardiomegaly',
     'Effusion',
-    'Infiltrate',
+    'Infiltration',
     'Mass',
     'Nodule',
     'Pneumonia',
@@ -13,7 +13,7 @@ LABELS = [
 #     os.makedirs(os.path.join('data', 'train', d))
 #     os.makedirs(os.path.join('data', 'validation', d))
 #     os.makedirs(os.path.join('data', 'test', d)) 
-
+inceptionresnetv2
 from random import shuffle
 
 with open('data/pickles/labels_valid.pkl', 'rb') as f:

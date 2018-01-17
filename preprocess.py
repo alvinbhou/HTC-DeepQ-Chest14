@@ -11,8 +11,8 @@ LABELS = {
     'Emphysema': -1,
     'Fibrosis': -1,
     'Hernia': -1,
-    'Infiltration': -1,
-    'Infiltrate': 4,
+    'Infiltration': 4,
+    'Infiltrate': -1,
     'Mass': 5,
     'Nodule': 6,
     'Pleural_Thickening': -1,
@@ -43,6 +43,7 @@ traindata = {}
 validdata = {}
 testdata = {}
  
+print(len(validset))
 with open('data/Data_Entry_2017_v2.csv') as f:
     re = csv.reader(f)
     next(re)
@@ -55,7 +56,7 @@ with open('data/Data_Entry_2017_v2.csv') as f:
                 continue
             obs = ob-1
             break
- 
+        
         if obs == None:
             continue
  
@@ -66,14 +67,14 @@ with open('data/Data_Entry_2017_v2.csv') as f:
         elif id in testset:
             testdata[id] = obs
  
-# print(len(traindata.keys()))
+print(len(traindata.keys()))
 print(len(validdata.keys()))
-# print(len(testdata.keys()))
-# with open('data/pickles/labels_train.pkl', 'wb') as f:
-#     pickle.dump(traindata, f)
+print(len(testdata.keys()))
+with open('data/pickles/labels_train.pkl', 'wb') as f:
+    pickle.dump(traindata, f)
  
 with open('data/pickles/labels_valid.pkl', 'wb') as f:
     pickle.dump(validdata, f)
  
-# with open('data/pickles/labels_test.pkl', 'wb') as f:
-#     pickle.dump(testdata, f)
+with open('data/pickles/labels_test.pkl', 'wb') as f:
+    pickle.dump(testdata, f)

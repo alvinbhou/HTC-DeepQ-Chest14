@@ -16,6 +16,25 @@ import cv2
 import sys, random, time
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
 from keras.applications.resnet50 import ResNet50, preprocess_input
+LABELS = {
+    'No Finding': -1,
+    'Atelectasis': 1,
+    'Cardiomegaly': 2,
+    'Consolidation': -1,
+    'Edema': -1,
+    'Effusion': 3,
+    'Emphysema': -1,
+    'Fibrosis': -1,
+    'Hernia': -1,
+    'Infiltration': 4,
+    'Infiltrate': -1,
+    'Mass': 5,
+    'Nodule': 6,
+    'Pleural_Thickening': -1,
+    'Pneumonia': 7,
+    'Pneumothorax': 8
+}
+trainset = set()
 
 class LogCallback(Callback):
     def __init__(self):
@@ -32,9 +51,8 @@ if not (os.path.exists("models/%s/" % model_id)):
     os.makedirs("models/%s/" % model_id)
 MODELDIR = os.path.join("models", model_id)
 MODELFILE = 'model.h5'
-CLASSES =  8 
+CLASSES =  1
 
-# sv = ModelCheckpoint(os.path.join(MODELDIR, MODELFILE), save_best_only=True, save_weights_only=True)
 sv = ModelCheckpoint(os.path.join(MODELDIR, MODELFILE),
                             monitor='val_acc',
                             verbose=1,
@@ -42,22 +60,56 @@ sv = ModelCheckpoint(os.path.join(MODELDIR, MODELFILE),
                             save_weights_only=False,
                             mode='auto',
                             period=1)
-es = EarlyStopping(patience=20)
 
+def preprocess():
+    with open('data/train.txt') as f:
+        re = csv.reader(f)
+        for r in re:
+            trainset.add(r[0])
 
-def EqualizeHistogram(img, in_path=None):
-    if in_path != None:
-        img = cv2.imread(in_path,0)
-    equ = np.array(cv2.equalizeHist(img))
-    # print(equ.shape)
-    return equ
+    isInfiltration = []
+    notInfiltration = []
+    with open('data/Data_Entry_2017_v2.csv') as f:
+        re = csv.reader(f)
+        next(re)
+        for r in re:
+            id = r[0]
+            flag = False
+            for observe in r[1].split('|'):
+                ob = LABELS[observe]
+                if observe == 'Infiltration':
+                    isInfiltration.append(id)
+                    flag = False
+                    break
+                if ob != -1:
+                    flag = True
+        
+            if (flag):
+                notInfiltration.append(id)
+    print(len(isInfiltration), len(notInfiltration))
 
-def CLAHE(img, in_path = None, tileGridsize=(8,8)):
-    if in_path != None:
-        img = cv2.imread(in_path,0)
-    clahe1 = cv2.createCLAHE(clipLimit=2.0, tileGridSize=tileGridsize)
-    cl1 = clahe1.apply(img)
-    return cl1
+    X = []
+    y = []
+
+    for idx in range(1,10001):
+        img1 = imread('data/images/' + isInfiltration[idx], mode ='RGB')
+        img2 = imread('data/images/' + notInfiltration[idx], mode ='RGB')
+        X.append(imresize(img1 ,size=(224,224)))
+        y.append([1])
+        X.append(imresize(img2 ,size=(224,224)))
+        y.append([0])
+        if(idx % 10 == 0):
+            print(idx)
+        if(idx % 2000 == 0):
+            print(idx)
+            X = np.array(X)
+            y = np.array(y)  
+            with open('data/bin/X_' + str(idx // 2000) +'.npy', 'wb') as f:
+                joblib.dump(X, f)
+            with open('data/bin/y_' + str(idx // 2000) +'.npy', 'wb') as f:
+                joblib.dump(y, f)
+            X = []
+            y = []
 
 def create_base_model( w = 'imagenet', trainable = False):
     model = ResNet50(weights=w, include_top=False, input_shape=(224, 224, 3))
@@ -79,41 +131,18 @@ def add_custom_layers(base_model):
         # x = Dropout(0.2)(x)
         # x = Dense(1024, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
         x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
-        x = Dense(2048, activation='relu', kernel_initializer='glorot_uniform', kernel_regularizer=regularizers.l2(0.005))(x)
-        y = Dense(CLASSES, activation='softmax')(x)
+        y = Dense(1, activation='sigmoid')(x)
         model = Model(inputs=base_model.input, outputs=y)
         return model
 
-def create_model_ResNetV2():
-    INPUT_SIZE = 256
-    xi = Input([INPUT_SIZE, INPUT_SIZE, 3 ])
-    x = Reshape([INPUT_SIZE, INPUT_SIZE, 3])(xi)
-
-    ir = InceptionResNetV2(
-        include_top=False,
-        weights= 'imagenet',
-        input_tensor=x,
-        input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
-        pooling='avg')
-
-    
-    p = Dense(512,  kernel_initializer='glorot_normal', activation='relu')(ir.output)
-    p = Dense(1024,  kernel_initializer='glorot_normal', activation='relu')(ir.output)
-    p = Dense(CLASSES,activation='softmax')(p)
-
-    # ============ Model
-    model = Model(ir.input, p)
-    model.compile('adam', 'categorical_crossentropy', metrics= ['acc'])
-    # model.summary()
-    return model
 
 def generator(batch_size, valid = False):
-    DATA_ROOT_PATH = 'data/npy'
+    DATA_ROOT_PATH = 'data/bin'
     while True:
         if(valid):
-            with open('data/npy/X_valid.npy', 'rb') as f:
+            with open('data/bin/X_5.npy', 'rb') as f:
                 X = joblib.load(f)
-            with open('data/npy/y_valid.npy', 'rb') as f:
+            with open('data/bin/y_5.npy', 'rb') as f:
                 y = joblib.load(f)
 
 
@@ -127,47 +156,23 @@ def generator(batch_size, valid = False):
                     yield X[j * batch_size: (j+1) * batch_size], y[ j * batch_size: (j+1) * batch_size]
 
         else:
-            for i in range(0,19):
+            for i in range(1,5):
                 with open(os.path.join(DATA_ROOT_PATH, 'X_' + str(i) + '.npy'), 'rb') as file:
                     X = joblib.load(file)
                 with open(os.path.join(DATA_ROOT_PATH, 'y_' + str(i) + '.npy'), 'rb') as file:
                     y = joblib.load(file) 
+                # X = np.random.shuffle(X)
+                # y = np.ran
                 for j in range( (len(X) // batch_size) - 1):
                     yield X[j * batch_size: (j+1) * batch_size], y[ j * batch_size: (j+1) * batch_size]  
 
-def x_gen(batch_size, valid = False):
-    if(valid):
-        with open('data/pickles/labels_valid.pkl', 'rb') as f:
-            traindata = pickle.load(f)
-    else:
-        with open('data/pickles/labels_train.pkl', 'rb') as f:
-            traindata = pickle.load(f)
-    X, y = [], []
-    while True:
-        for k, v in traindata.items():
-            # img = cv2.imread('data/images/' + k,0)
-            # resized_image = cv2.resize(img, (256, 256)) 
-            # img = EqualizeHistogram(resized_image)
-            # img = CLAHE(img)
-            # img = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
-            img = imread('data/images/' + k, mode ='RGB')
-            img = img / 255
-            X.append(imresize(img ,size=(224,224)))
-            y.append(v[0])
-            if(len(X) == batch_size):
-                y = to_categorical(y, num_classes=CLASSES)
-                X = np.array(X)
-                yield X,y
-                X, y = [], []
 
 def train():
-    if(os.path.exists(os.path.join(MODELDIR, MODELFILE))):
-        model = load_model(os.path.join(MODELDIR, MODELFILE))
-    else:
-        model = create_base_model(w = 'imagenet', trainable = False)
-        model = add_custom_layers(model)
-        adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    model = create_base_model(w = None, trainable = True)
+    model = add_custom_layers(model)
+    adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     # base_model = create_base_model()
     # model = add_custom_layers(base_model)
     # model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -185,5 +190,3 @@ def train():
 
 
 train()
-
-     

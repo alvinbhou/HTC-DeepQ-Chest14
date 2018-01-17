@@ -1,5 +1,5 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import sys
 from scipy.misc import imread, imsave, imresize
 import csv
@@ -35,10 +35,10 @@ def loadData():
 
 
 
-model_path = "./model/new3_model.h5"
+model_path = "./model/resnet_no_weight_model.h5"
 model = load_model(model_path)
 
-layer_idx = [idx for idx, layer in enumerate(model.layers) if layer.name == "dense_3"][0]
+layer_idx = [idx for idx, layer in enumerate(model.layers) if layer.name == "dense_2"][0]
 
 
 CLASS_NAME = "Cardiomegaly"
