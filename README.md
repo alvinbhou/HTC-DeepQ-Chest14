@@ -63,7 +63,7 @@ dropbox.py
 1. 先下載model和必要python檔案
 執行 `./download.sh ` 下載 `test.zip`
 
-2. `test.zip`內有 `batch_test.py`, `judge_runner.py`, `resnet_no_weight_model.h5`, `requirements3.txt`, `bin_model.h5` 五個檔案。將其壓縮檔上傳於judge並以 `python3 judge_runner.py` 的command執行。
+2. `test.zip`內有 `py_new.py`, `judge_runner.py`, `resnet_no_weight_model.h5`, `requirements3.txt`, `bin_model.h5` 五個檔案。將其壓縮檔上傳於judge並以 `python3 judge_runner.py` 的command執行。
 
 
 
