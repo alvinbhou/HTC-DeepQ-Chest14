@@ -1,6 +1,6 @@
 from scipy.misc import imread, imsave, imresize
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 from keras.utils import to_categorical
 from keras.layers import Conv2D, BatchNormalization, Input, Activation
 from keras.layers import LeakyReLU, Lambda, Reshape, Concatenate, Add, Dense, Flatten, Dropout
