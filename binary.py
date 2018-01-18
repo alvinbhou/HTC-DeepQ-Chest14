@@ -61,55 +61,7 @@ sv = ModelCheckpoint(os.path.join(MODELDIR, MODELFILE),
                             mode='auto',
                             period=1)
 
-def preprocess():
-    with open('data/train.txt') as f:
-        re = csv.reader(f)
-        for r in re:
-            trainset.add(r[0])
 
-    isInfiltration = []
-    notInfiltration = []
-    with open('data/Data_Entry_2017_v2.csv') as f:
-        re = csv.reader(f)
-        next(re)
-        for r in re:
-            id = r[0]
-            flag = False
-            for observe in r[1].split('|'):
-                ob = LABELS[observe]
-                if observe == 'Infiltration':
-                    isInfiltration.append(id)
-                    flag = False
-                    break
-                if ob != -1:
-                    flag = True
-        
-            if (flag):
-                notInfiltration.append(id)
-    print(len(isInfiltration), len(notInfiltration))
-
-    X = []
-    y = []
-
-    for idx in range(1,10001):
-        img1 = imread('data/images/' + isInfiltration[idx], mode ='RGB')
-        img2 = imread('data/images/' + notInfiltration[idx], mode ='RGB')
-        X.append(imresize(img1 ,size=(224,224)))
-        y.append([1])
-        X.append(imresize(img2 ,size=(224,224)))
-        y.append([0])
-        if(idx % 10 == 0):
-            print(idx)
-        if(idx % 2000 == 0):
-            print(idx)
-            X = np.array(X)
-            y = np.array(y)  
-            with open('data/bin/X_' + str(idx // 2000) +'.npy', 'wb') as f:
-                joblib.dump(X, f)
-            with open('data/bin/y_' + str(idx // 2000) +'.npy', 'wb') as f:
-                joblib.dump(y, f)
-            X = []
-            y = []
 
 def create_base_model( w = 'imagenet', trainable = False):
     model = ResNet50(weights=w, include_top=False, input_shape=(224, 224, 3))

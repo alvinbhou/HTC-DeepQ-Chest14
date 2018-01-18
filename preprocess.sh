@@ -1,0 +1,2 @@
+python3 preprocessLabel.py
+python3 generatePrepData.py
