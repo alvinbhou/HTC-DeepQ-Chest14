@@ -1,4 +1,4 @@
-# Weakly Supervised Learning for Findings Detection in Medical Image
+# HTC DeepQ Weakly Learning for Medical Images
 ## What is the project about?
 This project aims to classify diseases and identifying abnormalities based on medical X-ray images (Chest X-ray 14 dataset). Competed in the HTC DeepQ DL competitions at NTU.
 
@@ -78,7 +78,7 @@ Left: Applied histogram equalization, Right: Applied histogram equalization and 
 <img src="https://i.imgur.com/C2w4K1S.png" height="300px">
 
 ### Training methods
-We used ResNet-50 and InceptionResNetV2 to differenet models for our training.
+We used ResNet-50 and InceptionResNetV2 two differenet models for our training.
 
 ![](https://i.imgur.com/ePGul0R.png)
 
@@ -98,6 +98,7 @@ Using the ImageNet pre-trained weights with frozen layers, the validation accura
 ## Bounding results
 ### Use Effusion as an example
 Black: ground truth, Yellow: predicted
+
 ![](https://i.imgur.com/qVWHNOr.png)
 
 ![](https://i.imgur.com/Gbo4fQb.png)
