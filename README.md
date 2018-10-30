@@ -52,33 +52,33 @@ dropbox.py
 ### Training 
 1. Data preprocessing, run `./preprocess.sh ` and the processed data will be saved at `data/npy` and `data/bin`
 
-2. To start training, run `./train.sh` will start to train two different models (8+1 classifiers) and the models will be saved at `models/classifier_model` 和 `models/binary_model` 
+2. To start training, run `./train.sh` will start train two different models (8+1 classifiers) and the models will be saved at `models/classifier_model` 和 `models/binary_model` 
 
 ### Testing 
 How to run testing on the HTC DeepQ Platform
 
-1. To download models and the required python-files, run `./download.sh ` to download `test.zip`
+1. To download models and the required python-files, run `./download.sh ` to download
 
 2. Inside `test.zip` includes `batch_test.py`, `judge_runner.py`, `resnet_no_weight_model.h5`, `requirements3.txt`, `bin_model.h5` 5 files. Upload the zip file to the judge and run the command `python3 judge_runner.py` to start the testing process.
 
 ## Methods and Models
 ### Data preprocessing
 #### Histograms Equalization
-Since all the X-rat images are black and white, the distribution of the Histogram is quite important. We applied histogram equalization to the original dataset's image to standardize it.
+Since all the X-ray images are black and white, the distribution of the Histogram is quite important. We applied histogram equalization to the original dataset's image to standardize it.
 
 Left: Original image, Right: Applied histogram equalization
 
 <img src="https://i.imgur.com/HV0bF1Q.png" height="300px">
 
 #### CLAHE (Contrast Limited Adaptive Histogram Equalization)
-The drawbacks of Histograms Equalization is that it uses the global contract of images as a basis for standardization. This may result in some "over-brightness" on important areas in the image. From the image above, we found that the right image's rib is not clear enough. So we decided to use CLAHE to limit the contract difference to prevend over brightness.
+The drawbacks of Histograms Equalization is that it uses the global contrast of images as a basis for standardization. This may result in some "over-brightness" on important areas in the image. From the image above, we found that the right image's rib is not clear enough. So we decided to use CLAHE to limit the contrast difference to prevend over brightness.
 
 Left: Applied histogram equalization, Right: Applied histogram equalization and CLAHE
 
 <img src="https://i.imgur.com/C2w4K1S.png" height="300px">
 
 ### Training methods
-We used ResNet-50 and InceptionResNetV2 two differenet models for our training.
+We used ResNet-50 and InceptionResNetV2 two different models for our training.
 
 ![](https://i.imgur.com/ePGul0R.png)
 
@@ -88,16 +88,16 @@ The first step is to train a well performing classifier and use the model's last
 
 ![](https://i.imgur.com/wJWpsJb.png)
 
-This is a saliency map of a Cardiomegaly patient, and we can tell it focuses on the left heart.
+This is a saliency map of a Cardiomegaly patient, and we can tell the network focuses on the left heart.
 
 ## Performances
 Using the ImageNet pre-trained weights with frozen layers, the validation accuracy is around 40%.
 
 <img src="https://i.imgur.com/oPbvZc3.png" height="250px">
 
-## Bounding results
+## Bounding Results
 ### Use Effusion as an example
-Black: ground truth, Yellow: predicted
+Black: Ground truth, Yellow: Predicted
 
 ![](https://i.imgur.com/qVWHNOr.png)
 
@@ -109,7 +109,8 @@ The boxing method is to bound the area whrere its red pixel value is greater tha
 The training results is not spectacular, with a 41% accuracy. It may result from bad model selection on our end. However, we done some further research and found that Luke Oakden-Rayner, a PhD Candidate and Radiologist, has some thoughts on this dataset
 
 ```
- "I believe the ChestXray14 dataset, as it exists now, is not fit for training medical AI systems to do diagnostic work."
+ "I believe the ChestXray14 dataset, as it exists now, 
+ is not fit for training medical AI systems to do diagnostic work."
 ```
 
 He point out that there are some major issues
