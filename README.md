@@ -126,3 +126,8 @@ which leads to bad performance in machine learning tasks. Maybe we could try mor
 [ Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
 
 [ Classification of Common Thorax Diseases ](https://github.com/srm-soumya/chest-scan-classifier)
+
+## Contributors
+|Contributor|Contribution|
+|:-:|
+|[Franklyn Chen](https://github.com/Franklyncc) ([Franklyn Chen](https://github.com/franklynChen))| Help building up this project and the boxing script |
