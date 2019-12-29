@@ -129,5 +129,5 @@ which leads to bad performance in machine learning tasks. Maybe we could try mor
 
 ## Contributors
 |Contributor|Contribution|
-|:-:|
+|:-:|:-:|
 |[Franklyn Chen](https://github.com/Franklyncc) ([Franklyn Chen](https://github.com/franklynChen))| Help building up this project and the boxing script |
